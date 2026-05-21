@@ -12,7 +12,7 @@ from ..database import get_db
 from ..models import SharedSnippet
 from ..schemas import ShareCreateRequest, ShareCreateResponse, ShareRecord
 
-router = APIRouter(prefix="/share", tags=["Share"])
+router = APIRouter(prefix="/share", tags=["share"])
 
 SHARE_TTL = timedelta(days=7)
 
