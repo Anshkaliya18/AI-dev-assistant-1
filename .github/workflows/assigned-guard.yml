@@ -6,21 +6,30 @@ on:
 
 permissions:
   issues: write
+  pull-requests: write
+  contents: read
 
 jobs:
   guard:
+    # Ignore PR comments
+    if: github.event.issue.pull_request == null
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Check assignment requests
         uses: actions/github-script@v7
+
         with:
           script: |
             const issue = context.payload.issue;
             if (!issue) return;
 
-            const comment = context.payload.comment.body.toLowerCase();
-            const sender = context.payload.comment.user.login;
+            const comment =
+              context.payload.comment.body.toLowerCase();
+
+            const sender =
+              context.payload.comment.user.login;
 
             // Ignore maintainer and bots
             const ignoredUsers = [
@@ -47,29 +56,34 @@ jobs:
               'may i work'
             ];
 
-            const isAskingForAssignment = assignmentPhrases.some(p =>
-              comment.includes(p)
-            );
+            const isAskingForAssignment =
+              assignmentPhrases.some(p =>
+                comment.includes(p)
+              );
 
             if (!isAskingForAssignment) return;
 
             // Prevent duplicate bot replies
-            const comments = await github.rest.issues.listComments({
-              ...context.repo,
-              issue_number: issue.number
-            });
+            const comments =
+              await github.rest.issues.listComments({
+                ...context.repo,
+                issue_number: issue.number
+              });
 
-            const alreadyReplied = comments.data.some(c =>
-              c.user.login === 'github-actions[bot]' &&
-              c.body.includes(`@${sender}`)
-            );
+            const alreadyReplied =
+              comments.data.some(c =>
+                c.user.login === 'github-actions[bot]' &&
+                c.body.includes(`@${sender}`)
+              );
 
             if (alreadyReplied) return;
 
-            // Check assignees
+            // Current assignees
             const assignees = issue.assignees || [];
 
+            // Issue already assigned
             if (assignees.length > 0) {
+
               const assignedTo = assignees
                 .map(a => `@${a.login}`)
                 .join(', ');
@@ -77,6 +91,7 @@ jobs:
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: issue.number,
+
                 body: `Hi @${sender} 👋
 
 This issue is already assigned to ${assignedTo}.
@@ -84,8 +99,10 @@ This issue is already assigned to ${assignedTo}.
 Please check the assignees section before requesting assignment.
 
 You can explore:
-- Good First Issues: https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
-- All Open Issues: https://github.com/imDarshanGK/AI-dev-assistant/issues
+- Good First Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/labels/good%20first%20issue
+- All Open Issues:
+  https://github.com/imDarshanGK/AI-dev-assistant/issues
 
 Before contributing, please read:
 https://github.com/imDarshanGK/AI-dev-assistant/blob/main/CONTRIBUTING.md
@@ -93,12 +110,15 @@ https://github.com/imDarshanGK/AI-dev-assistant/blob/main/CONTRIBUTING.md
 Thank you for your interest in QyverixAI 🚀`
               });
 
-            } else {
+              return;
+            }
 
-              await github.rest.issues.createComment({
-                ...context.repo,
-                issue_number: issue.number,
-                body: `Hi @${sender} 👋
+            // Issue available
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: issue.number,
+
+              body: `Hi @${sender} 👋
 
 This issue is currently available.
 
@@ -114,5 +134,4 @@ Contribution Guide:
 https://github.com/imDarshanGK/AI-dev-assistant/blob/main/CONTRIBUTING.md
 
 Good luck and happy coding 💪`
-              });
-            }
+            });
