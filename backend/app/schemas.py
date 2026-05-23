@@ -1,8 +1,8 @@
 """Pydantic request / response models for QyverixAI."""
 
 from __future__ import annotations
-from typing import Any
-
+<<<<<<< HEAD
+from typing import Any, List
 from pydantic import BaseModel, field_validator
 
 
@@ -11,78 +11,77 @@ class CodeRequest(BaseModel):
     language: str | None = None
 
     @field_validator("code")
-    @classmethod
+    class HealthResponse(BaseModel):
     def code_must_not_be_empty(cls, v: str) -> str:
         v = v.strip()
         if not v:
             raise ValueError("code must not be empty")
-        if len(v) > 50_000:
-            raise ValueError("code exceeds 50,000 character limit")
-        return v
+    # ── Share ────────────────────────────────────────────────────────────────────
+    class ShareCreateRequest(BaseModel):
+        code: str
+        result: Any
 
 
-# ── Explanation ────────────────────────────────────────────────────────────────
-class ExplanationResponse(BaseModel):
-    language: str
-    summary: str
-    key_points: list[str]
-    complexity: str
-    line_count: int
-    function_count: int
-    class_count: int
-    cyclomatic_complexity: int
-    complexity_risk: str
+    class ShareCreateResponse(BaseModel):
+        id: str
 
 
-# ── Debugging ─────────────────────────────────────────────────────────────────
-class Issue(BaseModel):
-    type: str
-    line: int | None
-    description: str
-    suggestion: str
-    severity: str          # "error" | "warning" | "info"
-    code_snippet: str | None = None
-    code_context: str | None = None  # NEW: Formatted code with line numbers
+    class ShareRecord(BaseModel):
+        id: str
+        code: str
+        result: Any
+        created_at: str
 
 
-class DebuggingResponse(BaseModel):
-    issues: list[Issue]
-    summary: str
-    clean: bool
-    error_count: int
-    warning_count: int
-    info_count: int
+    # ── History & Favorites ───────────────────────────────────────────────────────
+    class HistoryRecord(BaseModel):
+        id: int
+        action: str
+        code: str
+        result_json: dict | None = None
+        created_at: str
 
 
-# ── Suggestions ───────────────────────────────────────────────────────────────
-class Suggestion(BaseModel):
-    category: str
-    description: str
-    line_number: int | None = None              # NEW
-    line_range: list[int] | None = None         # NEW (for multi-line issues)
-    code_context: str | None = None
-    example: str | None = None
-    priority: str          # "high" | "medium" | "low"
+    class HistoryCreateRequest(BaseModel):
+        action: str
+        code: str
+        result_json: dict | None = None
 
 
-class SuggestionsResponse(BaseModel):
-    suggestions: list[Suggestion]
-    overall_score: int
-    grade: str
-    next_step: str
+    class FavoriteRecord(BaseModel):
+        id: int
+        title: str
+        action: str
+        code: str
+        result_json: dict | None = None
+        created_at: str
 
 
-# ── Full Analysis ─────────────────────────────────────────────────────────────
-class AnalyzeResponse(BaseModel):
-    provider: str
-    model: str
-    explanation: ExplanationResponse
-    debugging: DebuggingResponse
-    suggestions: SuggestionsResponse
+    class FavoriteCreateRequest(BaseModel):
+        title: str
+        action: str
+        code: str
+        result_json: dict | None = None
+
+
+    # ── Progress Tracking ─────────────────────────────────────────────────────────
+    class AnalysisProgressPoint(BaseModel):
+        id: int
+        score: float
+        errors_count: int
+        language: str
+        created_at: str
+
+
+    class ProgressDashboardResponse(BaseModel):
+        history: List[AnalysisProgressPoint]
+        average_score: float
+        best_score: float
+        most_improved: float
     analysis_time_ms: float | None = None
 
 
-# ── Weekly Digest / Subscription ───────────────────────────────
+# ── Weekly Digest / Subscription ───────────────────────────────────────────────
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -115,6 +114,7 @@ class HealthResponse(BaseModel):
     endpoints: list[str] | None = None
 
 
+<<<<<<< HEAD
 # ── Share ────────────────────────────────────────────────────────────────────
 class ShareCreateRequest(BaseModel):
     code: str
@@ -130,3 +130,50 @@ class ShareRecord(BaseModel):
     code: str
     result: Any
     created_at: str
+=======
+# ── History & Favorites ───────────────────────────────────────────────────────
+class HistoryRecord(BaseModel):
+    id: int
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class HistoryCreateRequest(BaseModel):
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+class FavoriteRecord(BaseModel):
+    id: int
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+    created_at: str
+
+
+class FavoriteCreateRequest(BaseModel):
+    title: str
+    action: str
+    code: str
+    result_json: dict | None = None
+
+
+# ── Progress Tracking ─────────────────────────────────────────────────────────
+class AnalysisProgressPoint(BaseModel):
+    id: int
+    score: float
+    errors_count: int
+    language: str
+    created_at: str
+
+
+class ProgressDashboardResponse(BaseModel):
+    history: List[AnalysisProgressPoint]
+    average_score: float
+    best_score: float
+    most_improved: float
+>>>>>>> 33d9406eee8e84ee4582feb8826d148092b64e94
